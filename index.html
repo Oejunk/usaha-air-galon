@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f766e">
+<meta name="description" content="Aplikasi offline untuk mengelola usaha air galon.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Usaha Air Galon — Offline</title>
+<style>
+:root{--bg:#f3f6f8;--panel:#fff;--ink:#17212b;--muted:#64748b;--line:#dbe4ea;--teal:#0f766e;--teal2:#14b8a6;--red:#b91c1c;--green:#15803d;--blue:#1d4ed8;--amber:#b45309}
+*{box-sizing:border-box}body{margin:0;font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(135deg,#115e59,#0f766e);color:#fff;padding:20px max(16px,calc((100% - 1180px)/2));}
+header h1{font-size:1.35rem;margin:0 0 4px}header p{margin:0;color:#d1fae5;font-size:.92rem}
+.wrap{max-width:1180px;margin:auto;padding:16px}
+.nav{display:flex;gap:8px;overflow:auto;padding:2px 0 12px}.nav button{white-space:nowrap;border:1px solid var(--line);background:#fff;color:#334155;border-radius:999px;padding:10px 14px;cursor:pointer;font-weight:650}.nav button.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.page{display:none}.page.active{display:block}.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 2px 8px #0f172a08}.span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-6{grid-column:span 6}.span-8{grid-column:span 8}.span-12{grid-column:span 12}
+.metric small{display:block;color:var(--muted);font-weight:650}.metric strong{display:block;font-size:1.6rem;margin-top:5px;overflow-wrap:anywhere}.section-title{margin:0 0 12px;font-size:1.05rem}.muted{color:var(--muted)}form .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.field label{display:block;font-size:.85rem;color:#475569;font-weight:650;margin-bottom:5px}.field input,.field select,.field textarea{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:10px;background:white;color:var(--ink);font:inherit}.field textarea{min-height:75px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.btn{border:0;border-radius:10px;background:var(--teal);color:white;padding:10px 14px;font:inherit;font-weight:700;cursor:pointer}.btn.secondary{background:#e2e8f0;color:#1e293b}.btn.danger{background:#fee2e2;color:#991b1b}.btn.small{padding:6px 9px;font-size:.82rem}.table-wrap{overflow:auto;margin-top:12px}table{width:100%;border-collapse:collapse;min-width:680px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:.82rem;color:#475569;background:#f8fafc;position:sticky;top:0}td .sub{font-size:.8rem;color:var(--muted)}.empty{padding:18px;text-align:center;color:var(--muted)}.pill{display:inline-block;border-radius:999px;padding:3px 8px;background:#e2e8f0;font-size:.78rem;font-weight:700}.pill.green{background:#dcfce7;color:#166534}.pill.red{background:#fee2e2;color:#991b1b}.pill.amber{background:#fef3c7;color:#92400e}.progress{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:6px}.progress i{display:block;height:100%;background:var(--teal);width:0}.notice{background:#ecfeff;border:1px solid #a5f3fc;padding:12px;border-radius:12px;color:#155e75;font-size:.9rem}.inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.inline input{max-width:240px}.right{float:right}.hidden{display:none!important}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#14532d;color:white;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px #0002;z-index:99;max-width:90%;text-align:center;font-weight:650}footer{text-align:center;color:var(--muted);font-size:.82rem;padding:20px}
+@media(max-width:760px){.wrap{padding:12px}.span-3,.span-4,.span-6,.span-8{grid-column:span 12}form .fields{grid-template-columns:1fr}.metric strong{font-size:1.45rem}header{padding:18px 16px}}
+
+/* PWA navigation colors + mobile bottom navigation */
+:root{--dash:#0f766e;--income:#16a34a;--expense:#dc2626;--targets:#7c3aed;--savings:#2563eb;--maintenance:#d97706;--backup:#64748b}
+.nav{position:sticky;top:0;z-index:20;background:var(--bg);padding:10px 2px 12px}
+.nav button{border:0;border-radius:12px;color:#fff;box-shadow:0 2px 5px #0f172a14}
+.nav button[data-page="dashboard"]{background:var(--dash)}
+.nav button[data-page="income"]{background:var(--income)}
+.nav button[data-page="expense"]{background:var(--expense)}
+.nav button[data-page="targets"]{background:var(--targets)}
+.nav button[data-page="savings"]{background:var(--savings)}
+.nav button[data-page="maintenance"]{background:var(--maintenance)}
+.nav button[data-page="backup"]{background:var(--backup)}
+.nav button.active{outline:3px solid #0f172a22;outline-offset:2px;filter:brightness(.9)}
+.nav button::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#ffffffc9;margin-right:7px}
+@media(max-width:600px){
+.nav{position:fixed;top:auto;bottom:0;left:0;right:0;margin:0;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;box-shadow:0 -5px 20px #0f172a12}
+.nav button{font-size:11px;padding:9px 4px;border-radius:10px;white-space:normal;line-height:1.15;min-height:42px}
+.nav button::before{display:block;margin:0 auto 4px;width:6px;height:6px}
+.wrap{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+.card{padding:13px}
+.field input,.field select,.field textarea{font-size:16px}
+}
+
+</style>
+</head>
+<body>
+<header><h1>💧 Usaha Air Galon</h1><p>Aplikasi offline untuk keuangan, target menabung, dan jadwal perawatan.</p></header>
+<div class="wrap">
+  <div class="notice">Data disimpan di perangkat/browser ini. Tidak perlu internet. Gunakan menu <b>Cadangan</b> secara berkala agar data tidak hilang jika data browser dibersihkan.</div>
+  <nav class="nav" aria-label="Menu">
+    <button class="active" data-page="dashboard">Dashboard</button><button data-page="income">Pemasukan</button><button data-page="expense">Pengeluaran</button><button data-page="targets">Target Menabung</button><button data-page="savings">Tabungan Harian</button><button data-page="maintenance">Perawatan</button><button data-page="backup">Cadangan</button>
+  </nav>
+  <section id="dashboard" class="page active">
+    <div class="grid">
+      <div class="card metric span-3"><small>Total Pemasukan</small><strong id="mIncome">Rp0</strong></div>
+      <div class="card metric span-3"><small>Total Pengeluaran</small><strong id="mExpense">Rp0</strong></div>
+      <div class="card metric span-3"><small>Saldo Bersih</small><strong id="mBalance">Rp0</strong></div>
+      <div class="card metric span-3"><small>Galon Terjual</small><strong id="mGallons">0</strong></div>
+      <div class="card span-6"><h2 class="section-title">Ringkasan Bulan Ini</h2><div id="monthSummary" class="muted"></div></div>
+      <div class="card span-6"><h2 class="section-title">Target Menabung Aktif</h2><div id="targetSummary" class="muted"></div></div>
+      <div class="card span-12"><h2 class="section-title">Transaksi Terbaru</h2><div id="recent"></div></div>
+    </div>
+  </section>
+  <section id="income" class="page">
+    <div class="card"><h2 class="section-title">Tambah Pemasukan</h2>
+      <form id="incomeForm"><div class="fields">
+        <div class="field"><label>Tanggal</label><input name="date" type="date" required></div>
+        <div class="field"><label>Keterangan</label><input name="note" placeholder="Contoh: Penjualan galon" required></div>
+        <div class="field"><label>Jumlah galon</label><input name="qty" type="number" min="0" step="1" value="1" required></div>
+        <div class="field"><label>Harga per galon (Rp)</label><input name="price" type="number" min="0" step="100" required></div>
+      </div><div class="actions"><button class="btn">Simpan Pemasukan</button><button type="reset" class="btn secondary">Reset</button></div></form>
+    </div>
+    <div class="card" style="margin-top:12px"><div class="inline"><h2 class="section-title" style="margin:0">Daftar Pemasukan</h2><input id="incomeSearch" placeholder="Cari keterangan/tanggal"></div><div id="incomeTable"></div></div>
+  </section>
+  <section id="expense" class="page">
+    <div class="card"><h2 class="section-title">Tambah Pengeluaran</h2>
+      <form id="expenseForm"><div class="fields">
+        <div class="field"><label>Tanggal</label><input name="date" type="date" required></div>
+        <div class="field"><label>Keterangan</label><input name="note" placeholder="Contoh: Ganti filter" required></div>
+        <div class="field"><label>Jumlah</label><input name="qty" type="number" min="1" step="1" value="1" required></div>
+        <div class="field"><label>Harga satuan (Rp)</label><input name="price" type="number" min="0" step="100" required></div>
+      </div><div class="actions"><button class="btn">Simpan Pengeluaran</button><button type="reset" class="btn secondary">Reset</button></div></form>
+    </div>
+    <div class="card" style="margin-top:12px"><div class="inline"><h2 class="section-title" style="margin:0">Daftar Pengeluaran</h2><input id="expenseSearch" placeholder="Cari keterangan/tanggal"></div><div id="expenseTable"></div></div>
+  </section>
+  <section id="targets" class="page">
+    <div class="card"><h2 class="section-title">Buat Target Menabung</h2>
+      <form id="targetForm"><div class="fields">
+        <div class="field"><label>Nama target</label><input name="name" placeholder="Contoh: Mesin galon" required></div>
+        <div class="field"><label>Jumlah target (Rp)</label><input name="amount" type="number" min="1" step="1" required></div>
+        <div class="field"><label>Tipe target</label><select name="type"><option value="Deadline">Dengan deadline</option><option value="Fleksibel">Fleksibel (tanpa deadline)</option></select></div>
+        <div class="field" id="deadlineField"><label>Deadline</label><input name="deadline" type="date"></div>
+        <div class="field"><label>Prioritas</label><select name="priority"><option>Tinggi</option><option selected>Sedang</option><option>Rendah</option></select></div>
+        <div class="field"><label>Status</label><select name="status"><option>Aktif</option><option>Selesai</option><option>Batal</option></select></div>
+      </div><div class="actions"><button class="btn">Simpan Target</button><button type="reset" class="btn secondary">Reset</button></div></form>
+    </div>
+    <div class="card" style="margin-top:12px"><h2 class="section-title">Daftar Target</h2><div id="targetTable"></div></div>
+  </section>
+  <section id="savings" class="page">
+    <div class="card"><h2 class="section-title">Catat Tabungan Harian</h2>
+      <form id="savingForm"><div class="fields">
+        <div class="field"><label>Tanggal</label><input name="date" type="date" required></div>
+        <div class="field"><label>Target</label><select name="targetId" id="savingTarget" required></select></div>
+        <div class="field"><label>Nominal tabungan (Rp)</label><input name="amount" type="number" min="1" step="1" required></div>
+        <div class="field"><label>Catatan (opsional)</label><input name="note" placeholder="Contoh: hasil kerja hari ini"></div>
+      </div><div class="actions"><button class="btn">Simpan Tabungan</button><button type="reset" class="btn secondary">Reset</button></div></form>
+    </div>
+    <div class="card" style="margin-top:12px"><h2 class="section-title">Riwayat Tabungan</h2><div id="savingTable"></div></div>
+  </section>
+  <section id="maintenance" class="page">
+    <div class="card"><h2 class="section-title">Jadwal Perawatan</h2>
+      <form id="maintenanceForm"><div class="fields">
+        <div class="field"><label>Peralatan/perawatan</label><input name="name" placeholder="Contoh: Backwash filter silika" required></div>
+        <div class="field"><label>Tanggal terakhir / mulai</label><input name="lastDate" type="date" required></div>
+        <div class="field"><label>Interval (hari)</label><input name="interval" type="number" min="1" step="1" value="30" required></div>
+        <div class="field"><label>Catatan</label><input name="note" placeholder="Contoh: cek kondisi air"></div>
+      </div><div class="actions"><button class="btn">Simpan Jadwal</button><button type="reset" class="btn secondary">Reset</button></div></form>
+    </div>
+    <div class="card" style="margin-top:12px"><h2 class="section-title">Daftar Perawatan</h2><div id="maintenanceTable"></div></div>
+  </section>
+  <section id="backup" class="page">
+    <div class="grid">
+      <div class="card span-6"><h2 class="section-title">Ekspor Cadangan</h2><p class="muted">Simpan seluruh data aplikasi sebagai file JSON. Simpan file ini di tempat aman.</p><button class="btn" id="exportBtn">Unduh Cadangan JSON</button></div>
+      <div class="card span-6"><h2 class="section-title">Pulihkan Cadangan</h2><p class="muted">Impor file JSON dari aplikasi ini. Data saat ini akan diganti dengan isi cadangan.</p><input id="importFile" type="file" accept=".json,application/json"><div class="actions"><button class="btn danger" id="importBtn">Pulihkan Data</button></div></div>
+      <div class="card span-12"><h2 class="section-title">Informasi Penyimpanan</h2><p id="storageInfo" class="muted"></p><button class="btn secondary" id="csvBtn">Unduh transaksi ke CSV</button> <button class="btn danger" id="clearBtn">Hapus Semua Data</button></div>
+    </div>
+  </section>
+</div>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div><footer>Usaha Air Galon Offline • Data tersimpan lokal di browser perangkat ini.</footer>
+<script>
+const KEY='usahaAirGalonOffline_v1';
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const fresh=()=>({income:[],expense:[],targets:[],savings:[],maintenance:[]});
+let db=load();
+function load(){try{return {...fresh(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){return fresh()}}
+function save(){
+  try {
+    localStorage.setItem(KEY,JSON.stringify(db));
+  } catch(err) {
+    alert('Gagal menyimpan data ke penyimpanan browser. Detail: '+err.message);
+    return false;
+  }
+  try {
+    renderAll();
+    showToast('Data berhasil disimpan di perangkat ini.');
+  } catch(err) {
+    console.error('Data sudah tersimpan, tetapi tampilan gagal diperbarui:', err);
+    alert('Data sudah tersimpan, tetapi tampilan gagal diperbarui. Muat ulang halaman. Detail: '+err.message);
+  }
+  return true;
+}
+function showToast(message){
+  const el=document.getElementById('toast');
+  if(!el)return;
+  el.textContent=message;
+  el.classList.remove('hidden');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer=setTimeout(()=>el.classList.add('hidden'),2600);
+}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function rupiah(n){return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function dateID(s){if(!s)return '-';const d=new Date(s+'T00:00:00');return isNaN(d)?s:d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}
+function money(v){return Math.max(0,Number(v)||0)}
+function roundFriendly(n){if(n<=0)return 0;const rem=n%1000;return rem<=500?n-rem+500:n-rem+1000}
+function total(arr){return arr.reduce((s,x)=>s+Number(x.total||0),0)}
+function targetSaved(tid){return db.savings.filter(s=>s.targetId===tid).reduce((s,x)=>s+Number(x.amount||0),0)}
+function targetRemaining(t){return Math.max(0,Number(t.amount)-targetSaved(t.id))}
+function targetProgress(t){return Math.min(100,Math.round(targetSaved(t.id)/Math.max(1,Number(t.amount))*100))}
+function recommended(t){let rem=targetRemaining(t);if(!rem)return 0;if(t.type==='Deadline'&&t.deadline){let days=Math.ceil((new Date(t.deadline+'T23:59:59')-new Date(today()+'T00:00:00'))/86400000);if(days>0)return roundFriendly(Math.ceil(rem/days))}let saved=db.savings.filter(s=>s.targetId===t.id);if(saved.length){let dates=[...new Set(saved.map(s=>s.date))].sort();let span=Math.max(1,Math.ceil((new Date(today())-new Date(dates[0]))/86400000)+1);let rate=targetSaved(t.id)/span;return rate>0?roundFriendly(Math.ceil(rem/Math.max(1,Math.ceil(rem/rate)))):0}return 0}
+function statusMaintenance(m){let due=new Date(m.lastDate+'T00:00:00');due.setDate(due.getDate()+Number(m.interval));const diff=Math.ceil((due-new Date(today()+'T00:00:00'))/86400000);return {due:due.toISOString().slice(0,10),diff}}
+function table(headers,rows){if(!rows.length)return '<div class="empty">Belum ada data.</div>';return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`}
+function delBtn(type,idv){return `<button class="btn danger small" onclick="removeItem('${type}','${idv}')">Hapus</button>`}
+function renderIncome(){const q=(document.getElementById('incomeSearch').value||'').toLowerCase();const rows=db.income.filter(x=>(x.note+' '+x.date).toLowerCase().includes(q)).slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<tr><td>${dateID(x.date)}</td><td>${esc(x.note)}</td><td>${x.qty}</td><td>${rupiah(x.price)}</td><td><b>${rupiah(x.total)}</b></td><td>${delBtn('income',x.id)}</td></tr>`);document.getElementById('incomeTable').innerHTML=table(['Tanggal','Keterangan','Galon','Harga/galon','Total','Aksi'],rows)}
+function renderExpense(){const q=(document.getElementById('expenseSearch').value||'').toLowerCase();const rows=db.expense.filter(x=>(x.note+' '+x.date).toLowerCase().includes(q)).slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<tr><td>${dateID(x.date)}</td><td>${esc(x.note)}</td><td>${x.qty}</td><td>${rupiah(x.price)}</td><td><b>${rupiah(x.total)}</b></td><td>${delBtn('expense',x.id)}</td></tr>`);document.getElementById('expenseTable').innerHTML=table(['Tanggal','Keterangan','Jumlah','Harga satuan','Total','Aksi'],rows)}
+function renderTargets(){const rows=db.targets.map(t=>{const saved=targetSaved(t.id),rem=targetRemaining(t),pct=targetProgress(t);let status=t.status||'Aktif';return `<tr><td><b>${esc(t.name)}</b><div class="sub">${esc(t.type)} • Prioritas ${esc(t.priority)}</div></td><td>${rupiah(t.amount)}</td><td>${rupiah(saved)}</td><td>${rupiah(rem)}</td><td>${t.deadline?dateID(t.deadline):'Fleksibel'}</td><td><span class="pill ${status==='Aktif'?'green':status==='Selesai'?'blue':'red'}">${esc(status)}</span><div class="progress"><i style="width:${pct}%"></i></div><div class="sub">${pct}%</div></td><td>${rupiah(recommended(t))}<div class="sub">saran/hari</div></td><td><select aria-label="Status target" onchange="setTargetStatus('${t.id}',this.value)"><option ${status==='Aktif'?'selected':''}>Aktif</option><option ${status==='Selesai'?'selected':''}>Selesai</option><option ${status==='Batal'?'selected':''}>Batal</option></select><div style="margin-top:6px">${delBtn('targets',t.id)}</div></td></tr>`});document.getElementById('targetTable').innerHTML=table(['Target','Target Rp','Terkumpul','Sisa','Deadline','Progress','Rekomendasi','Kelola'],rows);document.getElementById('savingTarget').innerHTML='<option value="">Pilih target...</option>'+db.targets.filter(t=>(t.status||'Aktif')==='Aktif').map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}
+function renderSavings(){const rows=db.savings.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(s=>{const t=db.targets.find(t=>t.id===s.targetId);return `<tr><td>${dateID(s.date)}</td><td>${esc(t?.name||'Target dihapus')}</td><td><b>${rupiah(s.amount)}</b></td><td>${esc(s.note||'-')}</td><td>${delBtn('savings',s.id)}</td></tr>`});document.getElementById('savingTable').innerHTML=table(['Tanggal','Target','Nominal','Catatan','Aksi'],rows)}
+function renderMaintenance(){const rows=db.maintenance.slice().sort((a,b)=>a.lastDate.localeCompare(b.lastDate)).map(m=>{const st=statusMaintenance(m);const pill=st.diff<0?'red':st.diff<=3?'amber':'green';const label=st.diff<0?`Terlambat ${Math.abs(st.diff)} hari`:st.diff===0?'Jatuh tempo hari ini':`Dalam ${st.diff} hari`;return `<tr><td><b>${esc(m.name)}</b><div class="sub">${esc(m.note||'')}</div></td><td>${dateID(m.lastDate)}</td><td>${m.interval} hari</td><td>${dateID(st.due)}</td><td><span class="pill ${pill}">${label}</span></td><td><button class="btn small" onclick="markMaintDone('${m.id}')">Selesai hari ini</button> ${delBtn('maintenance',m.id)}</td></tr>`});document.getElementById('maintenanceTable').innerHTML=table(['Perawatan','Terakhir','Interval','Jadwal berikut','Status','Aksi'],rows)}
+function renderDashboard(){const ti=total(db.income),te=total(db.expense);document.getElementById('mIncome').textContent=rupiah(ti);document.getElementById('mExpense').textContent=rupiah(te);document.getElementById('mBalance').textContent=rupiah(ti-te);document.getElementById('mGallons').textContent=db.income.reduce((s,x)=>s+Number(x.qty||0),0).toLocaleString('id-ID');const ym=today().slice(0,7),mi=total(db.income.filter(x=>x.date.startsWith(ym))),me=total(db.expense.filter(x=>x.date.startsWith(ym)));document.getElementById('monthSummary').innerHTML=`<p>Pemasukan bulan ini: <b>${rupiah(mi)}</b></p><p>Pengeluaran bulan ini: <b>${rupiah(me)}</b></p><p>Selisih bulan ini: <b>${rupiah(mi-me)}</b></p>`;const active=db.targets.filter(t=>(t.status||'Aktif')==='Aktif');document.getElementById('targetSummary').innerHTML=active.length?active.map(t=>`<div style="margin:10px 0"><div class="inline" style="justify-content:space-between"><b>${esc(t.name)}</b><span>${targetProgress(t)}%</span></div><div class="progress"><i style="width:${targetProgress(t)}%"></i></div><div class="sub">${rupiah(targetSaved(t.id))} dari ${rupiah(t.amount)} • sisa ${rupiah(targetRemaining(t))}</div></div>`).join(''):'Belum ada target aktif.';const all=[...db.income.map(x=>({...x,kind:'Pemasukan'})),...db.expense.map(x=>({...x,kind:'Pengeluaran'}))].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);document.getElementById('recent').innerHTML=all.length?table(['Tanggal','Jenis','Keterangan','Total'],all.map(x=>`<tr><td>${dateID(x.date)}</td><td><span class="pill ${x.kind==='Pemasukan'?'green':'red'}">${x.kind}</span></td><td>${esc(x.note)}</td><td><b>${rupiah(x.total)}</b></td></tr>`)):'<div class="empty">Belum ada transaksi.</div>'}
+function renderStorage(){document.getElementById('storageInfo').textContent=`Data lokal saat ini: ${db.income.length} pemasukan, ${db.expense.length} pengeluaran, ${db.targets.length} target, ${db.savings.length} catatan tabungan, ${db.maintenance.length} jadwal perawatan.`}
+function renderAll(){renderIncome();renderExpense();renderTargets();renderSavings();renderMaintenance();renderDashboard();renderStorage()}
+function removeItem(type,itemId){if(!confirm('Yakin ingin menghapus data ini?'))return;db[type]=db[type].filter(x=>x.id!==itemId);save()}
+function setTargetStatus(tid,status){const t=db.targets.find(x=>x.id===tid);if(t){t.status=status;save()}}
+function markMaintDone(mid){const m=db.maintenance.find(x=>x.id===mid);if(m){m.lastDate=today();save()}}
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===b.dataset.page))}));
+document.querySelectorAll('input[type=date]').forEach(x=>x.value=today());
+document.getElementById('incomeForm').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target),qty=money(f.get('qty')),price=money(f.get('price'));db.income.push({id:id(),date:f.get('date'),note:f.get('note').trim(),qty,price,total:qty*price});e.target.reset();e.target.elements.date.value=today();save()});
+document.getElementById('expenseForm').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target),qty=money(f.get('qty')),price=money(f.get('price'));db.expense.push({id:id(),date:f.get('date'),note:f.get('note').trim(),qty,price,total:qty*price});e.target.reset();e.target.elements.date.value=today();save()});
+document.getElementById('targetForm').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target),type=f.get('type'),deadline=f.get('deadline');if(!Number.isFinite(Number(f.get('amount')))||Number(f.get('amount'))<=0){alert('Masukkan jumlah target yang lebih dari Rp0.');return}if(type==='Deadline'&&!deadline){alert('Isi deadline untuk target dengan deadline.');return}db.targets.push({id:id(),name:f.get('name').trim(),amount:money(f.get('amount')),type,deadline:type==='Deadline'?deadline:'',priority:f.get('priority'),status:f.get('status')});e.target.reset();e.target.elements.status.value='Aktif';e.target.elements.type.value='Deadline';e.target.elements.deadline.value=today();save()});
+document.getElementById('targetForm').elements.type.addEventListener('change',e=>{document.getElementById('deadlineField').classList.toggle('hidden',e.target.value==='Fleksibel')});
+document.getElementById('savingForm').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);if(!Number.isFinite(Number(f.get('amount')))||Number(f.get('amount'))<=0){alert('Masukkan nominal tabungan yang lebih dari Rp0.');return}if(!db.targets.some(t=>t.id===f.get('targetId')&&(t.status||'Aktif')==='Aktif')){alert('Pilih target yang masih aktif.');return}db.savings.push({id:id(),date:f.get('date'),targetId:f.get('targetId'),amount:money(f.get('amount')),note:String(f.get('note')||'').trim()});e.target.reset();e.target.elements.date.value=today();save()});
+document.getElementById('maintenanceForm').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);db.maintenance.push({id:id(),name:f.get('name').trim(),lastDate:f.get('lastDate'),interval:Math.max(1,money(f.get('interval'))),note:String(f.get('note')||'').trim()});e.target.reset();e.target.elements.lastDate.value=today();save()});
+document.getElementById('incomeSearch').addEventListener('input',renderIncome);document.getElementById('expenseSearch').addEventListener('input',renderExpense);
+document.getElementById('exportBtn').addEventListener('click',()=>download('cadangan-usaha-air-galon-'+today()+'.json',JSON.stringify(db,null,2),'application/json'));
+document.getElementById('importBtn').addEventListener('click',async()=>{const file=document.getElementById('importFile').files[0];if(!file){alert('Pilih file cadangan JSON terlebih dahulu.');return}if(!confirm('Data yang ada akan diganti. Lanjutkan?'))return;try{const data=JSON.parse(await file.text());if(!data||!Array.isArray(data.income)||!Array.isArray(data.expense)||!Array.isArray(data.targets)||!Array.isArray(data.savings)||!Array.isArray(data.maintenance))throw Error('Format cadangan tidak cocok');db={...fresh(),...data};save();alert('Cadangan berhasil dipulihkan.')}catch(err){alert('Gagal memulihkan: '+err.message)}});
+function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+document.getElementById('csvBtn').addEventListener('click',()=>{const rows=[['Jenis','Tanggal','Keterangan','Jumlah','Harga satuan','Total'],...db.income.map(x=>['Pemasukan',x.date,x.note,x.qty,x.price,x.total]),...db.expense.map(x=>['Pengeluaran',x.date,x.note,x.qty,x.price,x.total])];const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');download('transaksi-usaha-air-galon-'+today()+'.csv','\ufeff'+csv,'text/csv;charset=utf-8')});
+document.getElementById('clearBtn').addEventListener('click',()=>{if(confirm('PERINGATAN: semua data aplikasi di perangkat ini akan dihapus permanen. Sebaiknya unduh cadangan dulu. Yakin?')){db=fresh();save()}});
+renderAll();
+</script>
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.error));
+}
+</script>
+</body>
+</html>

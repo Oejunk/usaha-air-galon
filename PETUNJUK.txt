@@ -1,0 +1,1 @@
+Upload seluruh isi paket ke hosting HTTPS. Buka alamatnya di Chrome Android, tunggu termuat, lalu pilih menu tiga titik > Install app / Tambahkan ke layar utama. Sesudah cache pertama, aplikasi dapat dibuka offline. Data tersimpan terpisah di setiap perangkat; gunakan menu Cadangan untuk pindah data.
